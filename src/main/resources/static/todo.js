@@ -6,7 +6,7 @@ function initializeData(){
     try{
         xhttp.open("POST", '/todo/create/20', false);
         xhttp.send();
-        if (xhttp.status != 200){
+        if (xhttp.status != 201){
             showError(`Failed to Initialise Todo List Reason : ${JSON.parse(xhttp.responseText.message)}`)
         }else{
             var resp=JSON.parse(xhttp.responseText);
@@ -35,7 +35,7 @@ function get_todos(page) {
                 show();
             }else{
                 lastResponseEmpty=true;
-                currentPage==0?initlizeData():null;
+                currentPage== 0? initializeData():null;
             }
         }
     }catch(error){

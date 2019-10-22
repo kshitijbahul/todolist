@@ -8,16 +8,16 @@ plugins {
 
 group 'com.kshitij.pocs'
 version '1.0'
-sourceCompatibility = 1.8
+sourceCompatibility = 1.11
 
 repositories {
     mavenCentral()
 }
-jar {
-    enabled = true
+bootJar {
+    mainClassName = 'com.kshitij.pocs.Application'
 }
 task copyJar(type: Copy) {
-    dependsOn   'jar'
+    dependsOn   'bootJar'
     from        "build/libs/${rootProject.name}-${project.version}.jar"
     into        'build'
     rename { String fileName ->
@@ -25,10 +25,21 @@ task copyJar(type: Copy) {
     }
 }
 dependencies {
+    implementation 'org.springframework.boot:spring-boot-dependencies:2.2.0.RELEASE'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testCompile "org.hamcrest:java-hamcrest:2.0.0.0"
     compile "org.postgresql:postgresql:42.2.6"
+    components {
+        withModule('org.springframework:spring-beans') {
+            allVariants {
+                withDependencyConstraints {
+                    // Need to patch constraints because snakeyaml is an optional dependency
+                    it.findAll { it.name == 'snakeyaml' }.each { it.version { strictly '1.19' } }
+                }
+            }
+        }
+    }
 
 }
