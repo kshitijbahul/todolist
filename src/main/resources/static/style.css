@@ -1,0 +1,59 @@
+.hide{
+    display:none;
+}
+
+#errorBlock.show {
+    opacity:1;
+    transition:opacity 500ms;
+}
+#errorBlock.hide {
+    opacity:0;
+}
+.remove {
+    float: right;
+}
+input[type="checkbox"]{
+  float: left;
+}
+input[type="checkbox"]:checked + label{
+	text-decoration: line-through;
+	color: rgba(0,0,0,.3);
+}
+#newtodo{
+    text-align: center;
+}
+#todos{
+    overflow:scroll;
+    height:300px;
+}
+#todolist{
+	list-style: none;
+	color: rgba(0,0,0,.7);
+}
+p{
+    display: block;
+    text-align: center;
+}
+p#successBlock {
+    font-weight: bold;
+    background-color: forestgreen;
+    margin-bottom: 0px;
+    margin-top: 0px;
+}
+p#errorBlock {
+    background-color: red;
+    font-weight: bold;
+}
+#todolist li{
+	float: left;
+	width: 100%;
+	display: flex;
+    align-items: center;
+}
+label{
+  padding: 10px;
+	cursor: pointer;
+	float: left;
+	width: 100%;
+	transition: all .3s ease;
+}
