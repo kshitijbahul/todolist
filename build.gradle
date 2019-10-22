@@ -1,0 +1,34 @@
+plugins {
+    id 'java'
+    id 'com.gradle.build-scan' version '2.0.2'
+    id 'org.springframework.boot' version '2.2.0.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.7.RELEASE'
+    id "io.freefair.lombok" version "4.1.2"
+}
+
+group 'com.kshitij.pocs'
+version '1.0'
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+jar {
+    enabled = true
+}
+task copyJar(type: Copy) {
+    dependsOn   'jar'
+    from        "build/libs/${rootProject.name}-${project.version}.jar"
+    into        'build'
+    rename { String fileName ->
+        fileName.replace("-${project.version}", "")
+    }
+}
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testCompile "org.hamcrest:java-hamcrest:2.0.0.0"
+    compile "org.postgresql:postgresql:42.2.6"
+
+}
