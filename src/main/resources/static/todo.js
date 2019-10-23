@@ -1,35 +1,39 @@
-var currentPage=0;
-var todoList = [];
-var lastResponseEmpty=false;
-var xhttp =new XMLHttpRequest();
-function initializeData(){
+let currentPage=0;
+let todoList = [];
+let lastResponseEmpty=false;
+const pageSize=20;
+async function initializeData(){
     try{
-        xhttp.open("POST", '/todo/create/20', false);
-        xhttp.send();
-        if (xhttp.status != 201){
-            showError(`Failed to Initialise Todo List Reason : ${JSON.parse(xhttp.responseText.message)}`)
+        let response= await fetch('/todo/create/20',{
+             method: 'POST',
+             headers: {
+               'Content-Type': 'application/json;charset=utf-8'
+             }
+          }
+        )
+        if (response.status != 201){
+            showHide('errorBlock',`Failed to Initialise Todo List Reason : ${await response.json().message}.message)}`)
         }else{
-            var resp=JSON.parse(xhttp.responseText);
+            let resp=await response.json();
             if (resp.length>0){
                 todoList=todoList.concat(resp);
                 currentPage++;
                 show();
             }else{
-                showError(`Failed to Initialize ToDo list Automatically `)
+                showHide('errorBlock',`Failed to Initialize ToDo list Automatically `)
             }
         }
     }catch(error){
-        showError(`Failed to get ToDo list error is :  ${error}`)
+        showHide('errorBlock',`Failed to get ToDo list error is :  ${error}`)
     }
 }
-function get_todos(page) {
-    xhttp.open("GET", '/todo?page='+page+'&size=20', false);
+async function get_todos(page) {
     try{
-        xhttp.send();
-        if (xhttp.status != 200){
-            showError(`Failed to get Todo List Reason : ${JSON.parse(xhttp.responseText.message)}`)
+        let getResponse= await fetch(`/todo?page=${page}&size=${pageSize}`)
+        if (getResponse.status != 200){
+            showHide('errorBlock',`Failed to get Todo List Reason : ${await getResponse.json().message}.message)}`)
         }else{
-            var resp=JSON.parse(xhttp.responseText);
+            let resp=await getResponse.json();
             if (resp.length>0){
                 todoList=todoList.concat(resp);
                 show();
@@ -39,91 +43,97 @@ function get_todos(page) {
             }
         }
     }catch(error){
-        showError(`Failed to get ToDo list error is :  ${error}`)
+        showHide('errorBlock',`Failed to get ToDo list error is :  ${error}`)
     }
 }
 
-function add() {
-    var task = document.getElementById('task').value;
-    xhttp.open("POST", "/todo", false);
+async function add() {
+    let task = document.getElementById('task').value;
     try{
-        xhttp.setRequestHeader("Content-Type", "text/plain");
-        xhttp.send(task);
-        if (xhttp.status != 201){
+        let postResponse= await fetch('/todo/create/20',{
+                     method: 'POST',
+                     headers: {
+                       'Content-Type': 'text/plain'
+                     },
+                     body: task
+                  }
+        )
+        if (postResponse.status != 201){
             console.log(` Reason : ${xhttp.responseText.message}`);
-            showError(`Failed to add Todo " ${task} "to the List.`);
+            showHide('errorBlock',`Failed to add Todo " ${task} "to the List.`);
         }else{
-            addTodoToList(JSON.parse(xhttp.responseText));
-            showSuccess("Todo added");
+            addTodoToList(await postResponse.json());
+            showHide('successBlock',"Todo added");
         }
     }catch(error){
-        showError(`Failed to Add ToDo ${task} to the list  error is :  ${error}`)
+        showHide('errorBlock',`Failed to Add ToDo ${task} to the list  error is :  ${error}`)
     }
 }
 
-function remove(id) {
-    xhttp.open("DELETE", "/todo/"+id, false);
+async function remove(id) {
     try{
-        xhttp.send();
-        if (xhttp.status != 202){
-            console.log(` Delete failed Reason : ${JSON.parse(xhttp.responseText.message)}`);
-            showError(`Failed to Remove Todo.`);
+        let deleteResponse= await fetch(`/todo/${id}`,{method: 'DELETE'})
+        if (deleteResponse.status != 202){
+            console.log(` Delete failed Reason : ${await deleteResponse.json().message}`);
+            showHide('errorBlock',`Failed to Remove Todo.`);
         }else{
             todoList=todoList.filter(item=>item.id!=id);
             show();
         }
     }catch(error){
-        showError(`Failed to delete ToDo element error is :  ${error}`)
+        showHide('errorBlock',`Failed to delete ToDo element error is :  ${error}`)
     }
 }
-function showSuccess(message){
-document.getElementById('successBlock').className = 'show';
-document.getElementById('successBlock').innerHTML=message;
-setTimeout(function(){
-    document.getElementById('successBlock').className = 'hide';
-}, 2500);
-}
-function showError(error){
-document.getElementById('errorBlock').className = 'show';
-document.getElementById('errorBlock').innerHTML=error;
-setTimeout(function(){
-    document.getElementById('errorBlock').className = 'hide';
-}, 2500);
+
+async function showHide(id,error){
+    document.getElementById(id).className = 'show';
+    document.getElementById(id).innerHTML=error;
+    setTimeout(function(){
+            document.getElementById(id).className = 'hide';
+        }, 2500);
 }
 
-function changeTodoStatus(id){
-    var ele=todoList.find((item)=>item.id==id)
+async function changeTodoStatus(id){
+    let ele=todoList.find((item)=>item.id==id)
     ele.status= ele.status=="DONE"?"NOTDONE":"DONE";
     xhttp.open("PUT", "/todo/"+id, false);
     try{
         xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
         xhttp.send(JSON.stringify(ele));
-        if (xhttp.status != 200){
-            console.log(` failed to Update Todo status Reason : ${JSON.parse(xhttp.responseText.message)}`);
-            showError(`Failed to Remove Todo.`);
+        let putResponse= await fetch(`/todo/${id}`,{
+                             method: 'PUT',
+                             headers: {
+                               'Content-Type': 'application/json;charset=UTF-8'
+                             },
+                             body: ele
+                          }
+                )
+        if (putResponse.status != 200){
+            console.log(` failed to Update Todo status Reason : ${await putResponse.json().message}`);
+            showHide('errorBlock',`Failed to Update Todo.`);
         }
     }catch(error){
-        showError(`failed to Update Todo status :  ${error}`)
+        showHide('errorBlock',`failed to Update Todo status :  ${error}`)
     }
 }
 function addTodoToList(todo){
-    var listWithCheckBox='<li><input type="checkbox" onChange="changeTodoStatus('+todo.id;
-    var checkbox_part2=')" class="checkbox" id="'+todo.id+'"';
-    var checked=todo.status=="NOTDONE"?'':' checked="checked"';
-    var label = '><label for="'+todo.id+'">'+todo.description+'</label>';
-    var deleteButton='<button class="remove" onclick="remove('+todo.id+')" id="' + todo.id  + '">Delete</button></li>';
+    let listWithCheckBox='<li><input type="checkbox" onChange="changeTodoStatus('+todo.id;
+    let checkbox_part2=')" class="checkbox" id="'+todo.id+'"';
+    let checked=todo.status=="NOTDONE"?'':' checked="checked"';
+    let label = '><label for="'+todo.id+'">'+todo.description+'</label>';
+    let deleteButton='<button class="remove" onclick="remove('+todo.id+')" id="' + todo.id  + '">Delete</button></li>';
     document.getElementById('todolist').insertAdjacentHTML("beforeend",listWithCheckBox+checkbox_part2+checked+label+deleteButton);
 }
 function show() {
     document.getElementById('todolist').innerHTML='';
-    for(var i=0; i<todoList.length; i++) {
+    for(let i=0; i<todoList.length; i++) {
         addTodoToList(todoList[i]);
     };
 }
 function onScroll() {
-     var top=document.getElementById('todos').scrollTop;
-     var sizeofDiv=document.getElementById('todos').offsetHeight;
-     var scrolledHeight=document.getElementById('todos').scrollHeight;
+     let top=document.getElementById('todos').scrollTop;
+     let sizeofDiv=document.getElementById('todos').offsetHeight;
+     let scrolledHeight=document.getElementById('todos').scrollHeight;
      if (top>=scrolledHeight-sizeofDiv){
         lastResponseEmpty? null:currentPage++;
         get_todos(currentPage)
